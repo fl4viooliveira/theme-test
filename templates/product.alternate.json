@@ -1,0 +1,27 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "vendor": {
+          "type": "text",
+          "settings": {
+            "text": "{{ product.vendor }}"
+          }
+        },
+        "price": {
+          "type": "price"
+        },
+        "title": {
+          "type": "title"
+        },
+        "buy_buttons": {
+          "type": "buy_buttons"
+        }
+      },
+      "block_order": ["price", "title", "buy_buttons"],
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

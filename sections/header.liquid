@@ -83,27 +83,29 @@
 </style>
 
 {%- style -%}
-  .header {
-    padding-top: {{ section.settings.padding_top | times: 0.5 | round: 0 }}px;
-    padding-bottom: {{ section.settings.padding_bottom | times: 0.5 | round: 0 }}px;
-  }
 
+.header {
+  padding-top: {{section.settings.padding_top | times: 0.5 | round: 0}}px;
+  padding-bottom: {{section.settings.padding_bottom | times: 0.5 | round: 0}}px;
+}
+
+.section-header {
+  margin-bottom: {{section.settings.margin_bottom | times: 0.75 | round: 0}}px;
+}
+
+@media screen and(min-width: 750px) {
   .section-header {
-    margin-bottom: {{ section.settings.margin_bottom | times: 0.75 | round: 0 }}px;
+    margin-bottom: {{section.settings.margin_bottom}}px;
   }
+}
 
-  @media screen and (min-width: 750px) {
-    .section-header {
-      margin-bottom: {{ section.settings.margin_bottom }}px;
-    }
+@media screen and(min-width: 990px) {
+  .header {
+    padding-top: {{section.settings.padding_top}}px;
+    padding-bottom: {{section.settings.padding_bottom}}px;
   }
+}
 
-  @media screen and (min-width: 990px) {
-    .header {
-      padding-top: {{ section.settings.padding_top }}px;
-      padding-bottom: {{ section.settings.padding_bottom }}px;
-    }
-  }
 {%- endstyle -%}
 
 <script src="{{ 'details-disclosure.js' | asset_url }}" defer="defer"></script>
@@ -606,138 +608,142 @@
 {%- endif -%}
 
 {% javascript %}
-  class StickyHeader extends HTMLElement {
-    constructor() {
-      super();
-    }
 
-    connectedCallback() {
-      this.header = document.getElementById('shopify-section-header');
-      this.headerBounds = {};
-      this.currentScrollTop = 0;
-      this.preventReveal = false;
-      this.predictiveSearch = this.querySelector('predictive-search');
-
-      this.onScrollHandler = this.onScroll.bind(this);
-      this.hideHeaderOnScrollUp = () => this.preventReveal = true;
-
-      this.addEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
-      window.addEventListener('scroll', this.onScrollHandler, false);
-
-      this.createObserver();
-    }
-
-    disconnectedCallback() {
-      this.removeEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
-      window.removeEventListener('scroll', this.onScrollHandler);
-    }
-
-    createObserver() {
-      let observer = new IntersectionObserver((entries, observer) => {
-        this.headerBounds = entries[0].intersectionRect;
-        observer.disconnect();
-      });
-
-      observer.observe(this.header);
-    }
-
-    onScroll() {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-      if (this.predictiveSearch && this.predictiveSearch.isOpen) return;
-
-      if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
-        if (this.preventHide) return;
-        requestAnimationFrame(this.hide.bind(this));
-      } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
-        if (!this.preventReveal) {
-          requestAnimationFrame(this.reveal.bind(this));
-        } else {
-          window.clearTimeout(this.isScrolling);
-
-          this.isScrolling = setTimeout(() => {
-            this.preventReveal = false;
-          }, 66);
-
-          requestAnimationFrame(this.hide.bind(this));
-        }
-      } else if (scrollTop <= this.headerBounds.top) {
-        requestAnimationFrame(this.reset.bind(this));
-      }
-
-      this.currentScrollTop = scrollTop;
-    }
-
-    hide() {
-      this.header.classList.add('shopify-section-header-hidden', 'shopify-section-header-sticky');
-      this.closeMenuDisclosure();
-      this.closeSearchModal();
-    }
-
-    reveal() {
-      this.header.classList.add('shopify-section-header-sticky', 'animate');
-      this.header.classList.remove('shopify-section-header-hidden');
-    }
-
-    reset() {
-      this.header.classList.remove('shopify-section-header-hidden', 'shopify-section-header-sticky', 'animate');
-    }
-
-    closeMenuDisclosure() {
-      this.disclosures = this.disclosures || this.header.querySelectorAll('header-menu');
-      this.disclosures.forEach(disclosure => disclosure.close());
-    }
-
-    closeSearchModal() {
-      this.searchModal = this.searchModal || this.header.querySelector('details-modal');
-      this.searchModal.close(false);
-    }
+class StickyHeader extends HTMLElement {
+  constructor() {
+    super();
   }
 
-  customElements.define('sticky-header', StickyHeader);
+  connectedCallback() {
+    this.header = document.getElementById('shopify-section-header');
+    this.headerBounds = {};
+    this.currentScrollTop = 0;
+    this.preventReveal = false;
+    this.predictiveSearch = this.querySelector('predictive-search');
+
+    this.onScrollHandler = this.onScroll.bind(this);
+    this.hideHeaderOnScrollUp = () => this.preventReveal = true;
+
+    this.addEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+    window.addEventListener('scroll', this.onScrollHandler, false);
+
+    this.createObserver();
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+    window.removeEventListener('scroll', this.onScrollHandler);
+  }
+
+  createObserver() {
+    let observer = new IntersectionObserver((entries, observer) => {
+      this.headerBounds = entries[0].intersectionRect;
+      observer.disconnect();
+    });
+
+    observer.observe(this.header);
+  }
+
+  onScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (this.predictiveSearch && this.predictiveSearch.isOpen) 
+      return;
+    
+
+    if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+      if (this.preventHide) 
+        return;
+      
+      requestAnimationFrame(this.hide.bind(this));
+    } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+      if (!this.preventReveal) {
+        requestAnimationFrame(this.reveal.bind(this));
+      } else {
+        window.clearTimeout(this.isScrolling);
+
+        this.isScrolling = setTimeout(() => {
+          this.preventReveal = false;
+        }, 66);
+
+        requestAnimationFrame(this.hide.bind(this));
+      }
+    } else if (scrollTop <= this.headerBounds.top) {
+      requestAnimationFrame(this.reset.bind(this));
+    }
+
+    this.currentScrollTop = scrollTop;
+  }
+
+  hide() {
+    this.header.classList.add('shopify-section-header-hidden', 'shopify-section-header-sticky');
+    this.closeMenuDisclosure();
+    this.closeSearchModal();
+  }
+
+  reveal() {
+    this.header.classList.add('shopify-section-header-sticky', 'animate');
+    this.header.classList.remove('shopify-section-header-hidden');
+  }
+
+  reset() {
+    this.header.classList.remove('shopify-section-header-hidden', 'shopify-section-header-sticky', 'animate');
+  }
+
+  closeMenuDisclosure() {
+    this.disclosures = this.disclosures || this.header.querySelectorAll('header-menu');
+    this.disclosures.forEach(disclosure => disclosure.close());
+  }
+
+  closeSearchModal() {
+    this.searchModal = this.searchModal || this.header.querySelector('details-modal');
+    this.searchModal.close(false);
+  }
+}
+
+customElements.define('sticky-header', StickyHeader);
+
 {% endjavascript %}
 
 <script type="application/ld+json">
-  {
-    "@context": "http://schema.org",
-    "@type": "Organization",
-    "name": {{ shop.name | json }},
-    {% if section.settings.logo %}
-      "logo": {{ section.settings.logo | image_url: width: section.settings.logo.width | prepend: "https:" | json }},
-    {% endif %}
-    "sameAs": [
-      {{ settings.social_twitter_link | json }},
-      {{ settings.social_facebook_link | json }},
-      {{ settings.social_pinterest_link | json }},
-      {{ settings.social_instagram_link | json }},
-      {{ settings.social_tiktok_link | json }},
-      {{ settings.social_tumblr_link | json }},
-      {{ settings.social_snapchat_link | json }},
-      {{ settings.social_youtube_link | json }},
-      {{ settings.social_vimeo_link | json }}
-    ],
-    "url": {{ request.origin | append: page.url | json }}
-  }
+
+
+[36mLine: 1[0m
+[31m{[0m
+[31m    "@context": "http://schema.org",[0m
+[31m    "@type": "Organization",[0m
+[31m    "name": {{ shop.name | json }},{% if section.settings.logo %}[0m
+[31m        "logo" : {{ section.settings.logo | image_url: width: section.settings.logo.width | prepend: "https:" | json }},{% endif %}[0m
+[31m    "sameAs": [[0m
+[31m        {{ settings.social_twitter_link | json }},[0m
+
+[36mLine: 20[0m
+[32m(empty line)[0m
+
 </script>
 
 {%- if request.page_type == 'index' -%}
   {% assign potential_action_target = request.origin | append: routes.search_url | append: "?q={search_term_string}" %}
   <script type="application/ld+json">
-    {
-      "@context": "http://schema.org",
-      "@type": "WebSite",
-      "name": {{ shop.name | json }},
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {{ potential_action_target | json }},
-        "query-input": "required name=search_term_string"
-      },
-      "url": {{ request.origin | append: page.url | json }}
-    }
-  </script>
+
+
+[36mLine: 1[0m
+[31m{[0m
+[31m    "@context": "http://schema.org",[0m
+[31m    "@type": "WebSite",[0m
+[31m    "name": {{ shop.name | json }},[0m
+[31m    "potentialAction": {[0m
+[31m        "@type": "SearchAction",[0m
+[31m        "target": {{ potential_action_target | json }},[0m
+
+[36mLine: 13[0m
+[32m(empty line)[0m
+
+</script>
 {%- endif -%}
 
 {% schema %}
+
 {
   "name": "t:sections.header.name",
   "class": "section-header",
@@ -749,33 +755,27 @@
         {
           "value": "accent-1",
           "label": "t:sections.all.colors.accent_1.label"
-        },
-        {
+        }, {
           "value": "accent-2",
           "label": "t:sections.all.colors.accent_2.label"
-        },
-        {
+        }, {
           "value": "background-1",
           "label": "t:sections.all.colors.background_1.label"
-        },
-        {
+        }, {
           "value": "background-2",
           "label": "t:sections.all.colors.background_2.label"
-        },
-        {
+        }, {
           "value": "inverse",
           "label": "t:sections.all.colors.inverse.label"
         }
       ],
       "default": "background-1",
       "label": "t:sections.all.colors.label"
-    },
-    {
+    }, {
       "type": "image_picker",
       "id": "logo",
       "label": "t:sections.header.settings.logo.label"
-    },
-    {
+    }, {
       "type": "range",
       "id": "logo_width",
       "min": 50,
@@ -784,20 +784,17 @@
       "default": 100,
       "unit": "t:sections.header.settings.logo_width.unit",
       "label": "t:sections.header.settings.logo_width.label"
-    },
-    {
+    }, {
       "type": "select",
       "id": "logo_position",
       "options": [
         {
           "value": "middle-left",
           "label": "t:sections.header.settings.logo_position.options__1.label"
-        },
-        {
+        }, {
           "value": "top-left",
           "label": "t:sections.header.settings.logo_position.options__2.label"
-        },
-        {
+        }, {
           "value": "top-center",
           "label": "t:sections.header.settings.logo_position.options__3.label"
         }
@@ -805,22 +802,19 @@
       "default": "middle-left",
       "label": "t:sections.header.settings.logo_position.label",
       "info": "t:sections.header.settings.logo_position.info"
-    },
-    {
+    }, {
       "type": "link_list",
       "id": "menu",
       "default": "main-menu",
       "label": "t:sections.header.settings.menu.label"
-    },
-    {
+    }, {
       "type": "select",
       "id": "menu_type_desktop",
       "options": [
         {
           "value": "dropdown",
           "label": "t:sections.header.settings.menu_type_desktop.options__1.label"
-        },
-        {
+        }, {
           "value": "mega",
           "label": "t:sections.header.settings.menu_type_desktop.options__2.label"
         }
@@ -828,25 +822,21 @@
       "default": "dropdown",
       "label": "t:sections.header.settings.menu_type_desktop.label",
       "info": "t:sections.header.settings.menu_type_desktop.info"
-    },
-    {
+    }, {
       "type": "checkbox",
       "id": "show_line_separator",
       "default": true,
       "label": "t:sections.header.settings.show_line_separator.label"
-    },
-    {
+    }, {
       "type": "checkbox",
       "id": "enable_sticky_header",
       "default": true,
       "label": "t:sections.header.settings.enable_sticky_header.label",
       "info": "t:sections.header.settings.enable_sticky_header.info"
-    },
-    {
+    }, {
       "type": "header",
       "content": "t:sections.all.spacing"
-    },
-    {
+    }, {
       "type": "range",
       "id": "margin_bottom",
       "min": 0,
@@ -855,12 +845,10 @@
       "unit": "px",
       "label": "t:sections.header.settings.margin_bottom.label",
       "default": 0
-    },
-    {
+    }, {
       "type": "header",
       "content": "t:sections.all.padding.section_padding_heading"
-    },
-    {
+    }, {
       "type": "range",
       "id": "padding_top",
       "min": 0,
@@ -869,8 +857,7 @@
       "unit": "px",
       "label": "t:sections.all.padding.padding_top",
       "default": 20
-    },
-    {
+    }, {
       "type": "range",
       "id": "padding_bottom",
       "min": 0,
@@ -882,4 +869,5 @@
     }
   ]
 }
+
 {% endschema %}
